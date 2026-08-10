@@ -1,4 +1,4 @@
- import numpy as np
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -84,12 +84,10 @@ if "1." in opcion:
         )
 
     with col_b:
-        # Gráfica interactiva de un complejo QRS simulado
         t = np.linspace(0, 2, 500)
         ecg_signal = np.sin(2 * np.pi * 1.2 * t) ** 9 + 0.1 * np.sin(
             2 * np.pi * 10 * t
         )
-        # Crear picos simulados
         fig_ecg = go.Figure()
         fig_ecg.add_trace(
             go.Scatter(
@@ -100,7 +98,6 @@ if "1." in opcion:
                 line=dict(color="#122B48", width=2),
             )
         )
-        # Anotación R-R
         fig_ecg.add_annotation(
             x=410,
             y=0.9,
@@ -227,7 +224,6 @@ elif "2." in opcion:
             unsafe_allow_html=True,
         )
 
-        # Tacograma y Poincaré
         fig_t = go.Figure()
         fig_t.add_trace(
             go.Scatter(
@@ -280,7 +276,6 @@ else:
         ],
     )
 
-    # Datos simulados basados en las tablas del artículo
     if "Fase 1" in fase or "Fase 8" in fase:
         st.success(
             "🌿 **Comportamiento Esperado:** Alta activación parasimpática (Vagal). RMSSD elevado (~80-110 ms), baja FC."
