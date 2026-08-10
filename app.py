@@ -1,4 +1,4 @@
-import numpy as np
+ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -6,22 +6,25 @@ import streamlit as st
 
 # Configuración de la página
 st.set_page_config(
-    page_title="HRV ECG Analyzer — USB", page_icon="🫀", layout="wide"
+    page_title="Simulador HRV & Autonómico — USB", page_icon="🫀", layout="wide"
 )
 
-# Estilo personalizado en azul turquí
+# Estilos visuales en Azul Turquí e Institucionales
 st.markdown(
     """
     <style>
     .main-title { color: #122B48; font-size: 26px; font-weight: bold; }
     .sub-title { color: #1B365D; font-size: 16px; }
+    .concept-box { background-color: #F0F4F8; border-left: 5px solid #122B48; padding: 12px; margin: 10px 0; border-radius: 4px; }
+    .step-box { background-color: #EBF8FF; border: 1px solid #3182CE; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
+# Banner Institucional
 st.markdown(
-    "<div class='main-title'>🫀 Analizador y Simulador de Variabilidad Cardíaca (HRV)</div>",
+    "<div class='main-title'>🫀 Simulador y Analizador de Variabilidad Cardíaca (HRV)</div>",
     unsafe_allow_html=True,
 )
 st.markdown(
@@ -29,159 +32,277 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.sidebar.header("🛠️ Panel de Control")
+# Menú Lateral
+st.sidebar.header("🛠️ Módulos Didácticos")
 opcion = st.sidebar.radio(
-    "Seleccione el Modo de Trabajo:",
+    "Seleccione el Módulo de Aprendizaje:",
     [
-        "1. Analizar Datos Reales del ECG (Laboratorio)",
-        "2. Simulador de Tono Autonómico (Demo Inductiva)",
+        "1. ¿Cómo Medir el R-R en el ECG? (Tutorial FT)",
+        "2. Registro de Campo (Ingreso de Datos)",
+        "3. Protocolo Autonómico de 20 min (Art. Sensors 2025)",
     ],
 )
 
+# ==============================================================================
+# MÓDULO 1: TUTORIAL PEDAGÓGICO PARA FISIOTERAPEUTAS
+# ==============================================================================
 if "1." in opcion:
     st.subheader(
-        "📊 Procesamiento de Intervalos R-R Extraídos del ECG de Laboratorio"
-    )
-    st.info(
-        "💡 **Instrucciones:** Mida la distancia entre los picos R en el papel del ECG (en milisegundos). Ingrese la secuencia separada por comas."
+        "📐 Módulo 1: ¿Cómo leer un Electrocardiograma y calcular el Intervalo R-R?"
     )
 
-    col1, col2 = st.columns(2)
-    with col1:
-        rr_reposo_str = st.text_area(
-            "🟢 Intervalos R-R en Reposo Supino (ms):",
+    st.markdown(
+        """
+    <div class='concept-box'>
+    <b>💡 Concepto Clave para Fisioterapia:</b><br>
+    El corazón no funciona como un metrónomo perfecto. Un corazón sano y adaptable muestra variaciones de milisegundos entre cada latido. 
+    Esa diferencia es dirigida por el <b>Sistema Nervioso Autónomo (SNA)</b>: el nervio Vago (freno) genera variabilidad, mientras que el Simpático (acelerador) vuelve los latidos rígidos e idénticos.
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    col_a, col_b = st.columns([1, 1])
+
+    with col_a:
+        st.markdown("### 🔍 Paso a Paso en el Papel del ECG:")
+        st.write(
+            "1. **Identifica la Onda R:** Es el pico más alto y afilado de la señal (despolarización ventricular)."
+        )
+        st.write(
+            "2. **Mide la distancia R-R:** Cuenta cuántos cuadritos pequeños hay entre el pico R de un latido y el pico R del latido siguiente."
+        )
+        st.write(
+            "3. **Convierte a Milisegundos (ms):** "
+            "   * La velocidad estándar del papel del ECG es **25 mm/s**."
+            "   * **1 cuadrito pequeño (1 mm) = 0.04 segundos = 40 milisegundos (ms)**."
+            "   * **1 cuadro grande (5 mm) = 0.20 segundos = 200 milisegundos (ms)**."
+        )
+        st.info(
+            "📝 **Ejemplo:** Si entre dos picos R cuentas **21 cuadritos pequeños**:\n"
+            "$$21 \\text{ cuadritos} \\times 40 \\text{ ms} = 840 \\text{ ms}$$"
+        )
+
+    with col_b:
+        # Gráfica interactiva de un complejo QRS simulado
+        t = np.linspace(0, 2, 500)
+        ecg_signal = np.sin(2 * np.pi * 1.2 * t) ** 9 + 0.1 * np.sin(
+            2 * np.pi * 10 * t
+        )
+        # Crear picos simulados
+        fig_ecg = go.Figure()
+        fig_ecg.add_trace(
+            go.Scatter(
+                x=t * 1000,
+                y=ecg_signal,
+                mode="lines",
+                name="Señal ECG",
+                line=dict(color="#122B48", width=2),
+            )
+        )
+        # Anotación R-R
+        fig_ecg.add_annotation(
+            x=410,
+            y=0.9,
+            text="Pico R (Latido 1)",
+            showarrow=True,
+            headheading=0,
+            arrowhead=2,
+            arrowcolor="red",
+        )
+        fig_ecg.add_annotation(
+            x=1240,
+            y=0.9,
+            text="Pico R (Latido 2)",
+            showarrow=True,
+            headheading=0,
+            arrowhead=2,
+            arrowcolor="red",
+        )
+        fig_ecg.add_shape(
+            type="line",
+            x0=410,
+            y0=0.5,
+            x1=1240,
+            y1=0.5,
+            line=dict(color="red", width=3, dash="dash"),
+        )
+        fig_ecg.add_annotation(
+            x=825,
+            y=0.6,
+            text="Intervalo R-R = 830 ms (20.7 cuadritos)",
+            showarrow=False,
+            font=dict(color="red", size=14, family="Arial"),
+        )
+
+        fig_ecg.update_layout(
+            title="Visualización Educativa del Intervalo R-R en ECG",
+            xaxis_title="Tiempo (Milisegundos - ms)",
+            yaxis_title="Voltaje (mV)",
+            template="plotly_white",
+            height=350,
+        )
+        st.plotly_chart(fig_ecg, use_container_width=True)
+
+# ==============================================================================
+# MÓDULO 2: INGRESO DE DATOS DEL ESTUDIANTE Y CÁLCULO
+# ==============================================================================
+elif "2." in opcion:
+    st.subheader(
+        "📊 Módulo 2: Registro de Campo e Interpretación de Datos del ECG"
+    )
+    st.write(
+        "Mida los intervalos R-R del papel milimetrado de su electrocardiograma e ingréselos separados por comas."
+    )
+
+    c1, c2 = st.columns(2)
+    with c1:
+        rr_reposo_in = st.text_area(
+            "🟢 Tira de ECG en Reposo Supino (milisegundos):",
             "850, 890, 830, 860, 845, 870, 820, 880, 855, 840, 865, 835",
             height=120,
+            help="Escriba los valores en ms calculados multiplicando los cuadritos por 40.",
         )
-    with col2:
-        rr_post_str = st.text_area(
-            "🟠 Intervalos R-R en Recuperación Post-Esfuerzo (ms):",
+    with c2:
+        rr_post_in = st.text_area(
+            "🟠 Tira de ECG Post-Esfuerzo / Recuperación (milisegundos):",
             "520, 525, 518, 522, 520, 524, 519, 521, 523, 520, 522, 519",
             height=120,
         )
 
-    def calcular_hrv(rr_str):
+    def analizar_rr(cadena):
         try:
-            rr = np.array([float(x.strip()) for x in rr_str.split(",") if x.strip()])
-            if len(rr) < 2:
+            arr = np.array(
+                [float(x.strip()) for x in cadena.split(",") if x.strip()]
+            )
+            if len(arr) < 2:
                 return None
-            fc_media = 60000 / np.mean(rr)
-            sdnn = np.std(rr, ddof=1)
-            diff_rr = np.diff(rr)
-            rmssd = np.sqrt(np.mean(diff_rr**2))
-            return {
-                "rr": rr,
-                "fc": fc_media,
-                "sdnn": sdnn,
-                "rmssd": rmssd,
-                "diff": diff_rr,
-            }
+            fc = 60000 / np.mean(arr)
+            sdnn = np.std(arr, ddof=1)
+            diff = np.diff(arr)
+            rmssd = np.sqrt(np.mean(diff**2))
+            return {"rr": arr, "fc": fc, "sdnn": sdnn, "rmssd": rmssd}
         except:
             return None
 
-    data_reposo = calcular_hrv(rr_reposo_str)
-    data_post = calcular_hrv(rr_post_str)
+    r_rep = analizar_rr(rr_reposo_in)
+    r_pos = analizar_rr(rr_post_in)
 
-    if data_reposo and data_post:
+    if r_rep and r_pos:
         st.markdown("---")
-        st.subheader("📈 Resultados de Modulación Autonómica")
+        st.markdown("### 📈 Panel de Métricas Fisiológicas")
 
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric(
-            "FC Media Reposo",
-            f"{data_reposo['fc']:.1f} bpm",
-            f"{data_post['fc'] - data_reposo['fc']:.1f} bpm post",
+        k1, k2, k3, k4 = st.columns(4)
+        k1.metric(
+            "Frecuencia Cardíaca Promedio",
+            f"{r_rep['fc']:.1f} bpm",
+            f"{r_pos['fc'] - r_rep['fc']:.1f} bpm post",
             delta_color="inverse",
         )
-        m2.metric(
-            "RMSSD Reposo (Vagal)",
-            f"{data_reposo['rmssd']:.1f} ms",
-            f"{data_post['rmssd'] - data_reposo['rmssd']:.1f} ms post",
+        k2.metric(
+            "RMSSD (Tono Vagal / Parasimpático)",
+            f"{r_rep['rmssd']:.1f} ms",
+            f"{r_pos['rmssd'] - r_rep['rmssd']:.1f} ms post",
         )
-        m3.metric(
-            "SDNN Reposo (Total)",
-            f"{data_reposo['sdnn']:.1f} ms",
-            f"{data_post['sdnn'] - data_reposo['sdnn']:.1f} ms post",
+        k3.metric(
+            "SDNN (Variabilidad Total)",
+            f"{r_rep['sdnn']:.1f} ms",
+            f"{r_pos['sdnn'] - r_rep['sdnn']:.1f} ms post",
         )
-        m4.metric(
-            "Estado Autonómico Basal",
-            "Predominio Vagal" if data_reposo["rmssd"] > 30 else "Estrés / Simpático",
+        k4.metric(
+            "Diagnóstico de Modulación",
+            "Buena Adaptación Vagal"
+            if r_rep["rmssd"] > 30
+            else "Estrés / Retirada Vagal",
         )
 
-        # Tacograma
-        fig_taco = go.Figure()
-        fig_taco.add_trace(
+        st.markdown(
+            """
+        <div class='concept-box'>
+        <b>🔍 Explicación Clínica para el Informe:</b><br>
+        • <b>RMSSD (Milisegundos):</b> Es el marcador principal del "freno" vagal. Si es alto (>30 ms), el sujeto tiene excelente capacidad de recuperación y baja fatiga.<br>
+        • <b>Comparación Reposo vs Post-Esfuerzo:</b> Al hacer ejercicio, el RMSSD cae porque el nervio Vago se retira para permitir que el corazón se acelere. En la recuperación, un rápido aumento del RMSSD indica alta condición física.
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
+        # Tacograma y Poincaré
+        fig_t = go.Figure()
+        fig_t.add_trace(
             go.Scatter(
-                y=data_reposo["rr"],
+                y=r_rep["rr"],
                 mode="lines+markers",
-                name="Reposo Basal",
+                name="Reposo Supino",
                 line=dict(color="#122B48", width=2),
             )
         )
-        fig_taco.add_trace(
+        fig_t.add_trace(
             go.Scatter(
-                y=data_post["rr"],
+                y=r_pos["rr"],
                 mode="lines+markers",
                 name="Recuperación Post-Esfuerzo",
                 line=dict(color="#DD6B20", width=2),
             )
         )
-        fig_taco.update_layout(
-            title="Tacograma (Variabilidad de Intervalos R-R Latido a Latido)",
+        fig_t.update_layout(
+            title="Tacograma (Variación R-R Latido a Latido)",
             xaxis_title="Número de Latido",
             yaxis_title="Intervalo R-R (ms)",
             template="plotly_white",
         )
-        st.plotly_chart(fig_taco, use_container_width=True)
+        st.plotly_chart(fig_t, use_container_width=True)
 
-        # Poincaré
-        fig_poincare = go.Figure()
-        fig_poincare.add_trace(
-            go.Scatter(
-                x=data_reposo["rr"][:-1],
-                y=data_reposo["rr"][1:],
-                mode="markers",
-                name="Reposo (Disperso = Alto RMSSD/Vagal)",
-                marker=dict(color="#122B48", size=10),
-            )
-        )
-        fig_poincare.add_trace(
-            go.Scatter(
-                x=data_post["rr"][:-1],
-                y=data_post["rr"][1:],
-                mode="markers",
-                name="Post-Esfuerzo (Agrupado = Retirada Vagal)",
-                marker=dict(color="#DD6B20", size=10),
-            )
-        )
-        fig_poincare.update_layout(
-            title="Gráfico No Lineal de Poincaré (R-R_n vs R-R_n+1)",
-            xaxis_title="R-R_n (ms)",
-            yaxis_title="R-R_n+1 (ms)",
-            template="plotly_white",
-        )
-        st.plotly_chart(fig_poincare, use_container_width=True)
-
+# ==============================================================================
+# MÓDULO 3: PROTOCOLO AUTONÓMICO DE 20 MINUTOS (TAFUR-TASCÓN ET AL., SENSORS 2025)
+# ==============================================================================
 else:
-    st.subheader("🎛️ Simulador Fisiológico de Modulación Autonómica")
-    tono = st.slider(
-        "Ajuste el Tono Autonómico del Sujeto (0 = Estrés Simpático | 100 = Alto Tono Vagal):",
-        min_value=0,
-        max_value=100,
-        value=75,
+    st.subheader(
+        "🏃‍♂️ Módulo 3: Protocolo Autonómico de 20 Minutos (Tafur-Tascón et al., Sensors 2025)"
+    )
+    st.markdown(
+        """
+    Este módulo reproduce las <b>8 fases del Test de Perfil Autonómico Cardiovascular</b> utilizado en ciclistas de élite (U-23) para evaluar la asimetría y recuperación de la frecuencia cardíaca.
+    """
     )
 
-    rmssd_sim = 10 + (tono * 0.8)
-    fc_sim = 110 - (tono * 0.5)
-
-    st.write(
-        f"**Predicción:** Frecuencia Cardíaca = **{fc_sim:.0f} bpm** | RMSSD Vagal Estimado = **{rmssd_sim:.1f} ms**"
+    fase = st.selectbox(
+        "Seleccione la Fase del Protocolo a Simular:",
+        [
+            "Fase 1: Clinostatismo / Reposo Supino (5 min)",
+            "Fase 2: Ventilación Controlada 10 ciclos/min (1 min)",
+            "Fase 3: Ventilación Controlada 12 ciclos/min (1 min)",
+            "Fase 4: Cambio Postural (1 min)",
+            "Fase 5: Ortostatismo / De Pie (3:15 min)",
+            "Fase 6: Test de Ruffier / Esfuerzo (0:45 min)",
+            "Fase 7: Recuperación Inicial (1 min)",
+            "Fase 8: Recuperación Final Supino (5 min)",
+        ],
     )
-    if tono < 35:
+
+    # Datos simulados basados en las tablas del artículo
+    if "Fase 1" in fase or "Fase 8" in fase:
+        st.success(
+            "🌿 **Comportamiento Esperado:** Alta activación parasimpática (Vagal). RMSSD elevado (~80-110 ms), baja FC."
+        )
+    elif "Fase 4" in fase or "Fase 5" in fase:
+        st.warning(
+            "⚡ **Comportamiento Esperado:** Estrés ortostático. Aumento del tono simpático, reducción del RMSSD (~45-50 ms), elevación de la FC."
+        )
+    elif "Fase 6" in fase:
         st.error(
-            "⚠️ **Predominio Simpático Elevado / Retirada Vagal:** El trazado de intervalos R-R se vuelve rígido, monótono y sin variabilidad."
+            "🔥 **Comportamiento Esperado:** Máxima modulación simpática por esfuerzo. Retirada vagal casi total (RMSSD < 30 ms)."
         )
     else:
-        st.success(
-            "🌿 **Predominio Parasimpático / Alto Tono Vagal:** El trazado muestra alta flexibilidad fisiológica e irregularidad sana latido a latido."
+        st.info(
+            "🫁 **Comportamiento Esperado:** Sincronización de la Arritmia Sinusal Respiratoria (ASR) por modulación vagal."
         )
+
+    st.markdown("---")
+    st.markdown("### 📝 Cuestionario de Aplicación Clínica para Fisioterapia:")
+    st.write(
+        "1. **¿Por qué un deportista con alta capacidad aeróbica recupera su RMSSD más rápido después del Test de Ruffier (Fase 7 y 8)?**"
+    )
+    st.write(
+        "2. **Si un paciente en rehabilitación cardiaca muestra un RMSSD rígido (sin cambios) entre el reposo y el esfuerzo, ¿qué riesgo fisiológico representa?**"
+    )
