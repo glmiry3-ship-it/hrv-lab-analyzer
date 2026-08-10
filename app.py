@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -8,8 +7,8 @@ st.set_page_config(
     page_title="Simulador HRV & ECG — USB", page_icon="🫀", layout="wide"
 )
 
-# Encabezado Institucional
-st.title("🫀 Simulador Didáctico de Variabilidad Cardíaca (HRV)")
+# Título y Encabezado
+st.title("🫀 Laboratorio Virtual: Variabilidad Cardíaca (HRV) para Fisioterapia")
 st.caption(
     "Programa de Maestría en Actividad Física y Salud — Universidad Simón Bolívar"
 )
@@ -22,38 +21,38 @@ opcion = st.sidebar.radio(
     "Seleccione el tema a explorar:",
     [
         "1. ¿Cómo Leer el Papel del ECG? (Tutorial Paso a Paso)",
-        "2. Calculadora y Analizador R-R (Práctica de Campo)",
-        "3. Protocolo Autonómico de 20 min (Art. Sensors 2025)",
+        "2. Registro de Campo (Ingreso de Datos del Laboratorio)",
+        "3. Protocolo Autonómico de 20 min (Sensors 2025)",
     ],
 )
 
 # ==============================================================================
-# MÓDULO 1: TUTORIAL ILUSTRADO PASO A PASO
+# MÓDULO 1: TUTORIAL ILUSTRADO Y AMIGABLE
 # ==============================================================================
 if "1." in opcion:
-    st.header("📐 Módulo 1: Guía para Identificar la Onda R y Medir el R-R")
+    st.header("📐 Módulo 1: ¿Cómo identificar la Onda R y medir el Intervalo R-R?")
 
     st.success(
-        "💡 **¿Qué es la Variabilidad Cardíaca (HRV) para Fisioterapia?**\n\n"
-        "Un corazón sano NO es un metrónomo perfecto. Entre latido y latido existen variaciones de milisegundos "
-        "controladas por el Sistema Nervioso Autónomo. El **Nervio Vago (Parasimpático)** genera esa variabilidad saludable, "
+        "💡 **¿Qué es la Variabilidad Cardíaca (HRV) para un Fisioterapeuta?**\n\n"
+        "Un corazón sano **NO es un metrónomo perfecto**. Entre latido y latido existen pequeñas variaciones de milisegundos "
+        "dirigidas por el Sistema Nervioso Autónomo. El **Nervio Vago (Parasimpático)** genera esa variabilidad saludable (flexibilidad), "
         "mientras que el **Estrés o Fatiga (Simpático)** vuelve los latidos rígidos e idénticos."
     )
 
-    col1, col2 = st.columns([1, 1.2])
+    col1, col2 = st.columns([1, 1.1])
 
     with col1:
-        st.subheader("📋 Paso a Paso en el Papel Milimetrado")
+        st.subheader("📋 Paso a Paso en el Papel del ECG")
 
         st.markdown(
-            "1. **Ubica la Onda R:** Es el pico afilado y más alto de la señal electrocardiográfica (representa la contracción del ventrículo)."
+            "1. **Ubica la Onda R:** Es el pico más alto y afilado de la señal (representa la contracción ventricular)."
         )
         st.markdown(
             "2. **Cuenta los Cuadritos Pequeños:** Mide la distancia horizontal desde la punta de una Onda R hasta la punta de la siguiente Onda R."
         )
         st.markdown(
             "3. **Convierte a Milisegundos (ms):**\n"
-            "   * Vel. Estándar del ECG = **25 mm/segundo**.\n"
+            "   * Velocidad estándar del papel = **25 mm/segundo**.\n"
             "   * **1 cuadrito pequeño (1 mm) = 40 milisegundos (ms)**.\n"
             "   * **1 cuadro grande (5 mm) = 200 milisegundos (ms)**."
         )
@@ -61,98 +60,54 @@ if "1." in opcion:
         st.info(
             "🧮 **Ejemplo Práctico:**\n\n"
             "Si entre dos Ondas R cuentas **21 cuadritos pequeños**:\n\n"
-            "$$\\text{Intervalo R-R} = 21 \\times 40\\text{ ms} = \\mathbf{840\\text{ ms}}$$"
+            "$$\\text{Intervalo R-R} = 21 \\text{ cuadritos} \\times 40\\text{ ms} = \\mathbf{840\\text{ ms}}$$"
         )
 
     with col2:
-        st.subheader("🖼️ Visualización en Papel Milimetrado de ECG")
+        st.subheader("🖼️ Esquema Interactivo del Papel de ECG")
 
-        # Dibujo de señal ECG sintética sobre papel milimetrado con Matplotlib
-        time_ms = np.linspace(0, 1600, 1000)
-
-        def p_qrs_t(t_center):
-            p = 0.12 * np.exp(-(((time_ms - t_center + 160) / 30) ** 2))
-            q = -0.15 * np.exp(-(((time_ms - t_center + 35) / 10) ** 2))
-            r = 1.2 * np.exp(-(((time_ms - t_center) / 12) ** 2))
-            s = -0.25 * np.exp(-(((time_ms - t_center - 30) / 10) ** 2))
-            t_w = 0.25 * np.exp(-(((time_ms - t_center - 180) / 40) ** 2))
-            return p + q + r + s + t_w
-
-        r1 = 350
-        r2 = 1190
-        signal = p_qrs_t(r1) + p_qrs_t(r2)
-
-        fig, ax = plt.subplots(figsize=(8, 4.5), facecolor="#FFF0F0")
-        ax.set_facecolor("#FFF0F0")  # Rosado clásico de ECG
-
-        # Rejillas
-        ax.grid(
-            True, which="major", color="#FF9999", linestyle="-", linewidth=1.2
-        )
-        ax.grid(
-            True, which="minor", color="#FFCCCC", linestyle=":", linewidth=0.6
-        )
-        ax.minorticks_on()
-
-        # Trazado
-        ax.plot(time_ms, signal, color="#990000", linewidth=2.2, label="ECG")
-
-        # Marcas R y flecha R-R
-        ax.annotate(
-            "Onda R1",
-            xy=(r1, 1.2),
-            xytext=(r1 - 100, 1.4),
-            arrowprops=dict(facecolor="black", shrink=0.05, width=1.5),
-            fontsize=10,
-            weight="bold",
-        )
-        ax.annotate(
-            "Onda R2",
-            xy=(r2, 1.2),
-            xytext=(r2 + 20, 1.4),
-            arrowprops=dict(facecolor="black", shrink=0.05, width=1.5),
-            fontsize=10,
-            weight="bold",
-        )
-
-        ax.annotate(
-            "",
-            xy=(r1, 1.15),
-            xytext=(r2, 1.15),
-            arrowprops=dict(arrowstyle="<->", color="blue", lw=2),
-        )
-        ax.text(
-            (r1 + r2) / 2,
-            1.22,
-            "Intervalo R-R = 840 ms\n(21 cuadritos x 40 ms)",
-            ha="center",
-            va="bottom",
-            color="blue",
-            fontsize=10,
-            weight="bold",
-            bbox=dict(
-                boxstyle="round,pad=0.3", fc="white", ec="blue", lw=1.5
-            ),
-        )
-
-        # Nombres de Ondas
-        ax.text(r1 - 160, 0.2, "P", fontsize=10, weight="bold")
-        ax.text(r1 - 40, -0.25, "Q", fontsize=10, weight="bold")
-        ax.text(r1 + 30, -0.3, "S", fontsize=10, weight="bold")
-        ax.text(r1 + 180, 0.3, "T", fontsize=10, weight="bold")
-
-        ax.set_xlim(0, 1600)
-        ax.set_ylim(-0.5, 1.7)
-        ax.set_xlabel("Tiempo en milisegundos (ms)", fontsize=10)
-        ax.set_ylabel("Voltaje (mV)", fontsize=10)
-        ax.set_title(
-            "Complejo QRS en Papel Milimetrado de ECG",
-            fontsize=12,
-            weight="bold",
-            color="#990000",
-        )
-
-        st.pyplot(fig)
+        # Gráfico educativo tipo papel de ECG renderizado en SVG nativo
+        svg_ecg = """
+        <svg viewBox="0 0 600 260" width="100%" xmlns="http://www.w3.org/2000/svg" style="background-color: #FFF0F0; border: 2px solid #FF8080; border-radius: 8px;">
+            <!-- Grid de fondo -->
+            <defs>
+                <pattern id="smallGrid" width="12" height="12" patternUnits="userSpaceOnUse">
+                    <path d="M 12 0 L 0 0 0 12" fill="none" stroke="#FFCCCC" stroke-width="0.8"/>
+                </pattern>
+                <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+                    <rect width="60" height="60" fill="url(#smallGrid)"/>
+                    <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#FF8080" stroke-width="1.5"/>
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+            
+            <!-- Trazado ECG -->
+            <path d="M 10 160 L 60 160 L 70 145 L 80 160 L 90 170 L 100 160 L 110 160 L 120 165 L 125 180 L 135 30 L 145 200 L 150 160 L 170 160 L 185 130 L 210 160 L 360 160 L 370 145 L 380 160 L 390 170 L 400 160 L 410 160 L 420 165 L 425 180 L 435 30 L 445 200 L 450 160 L 470 160 L 485 130 L 510 160 L 590 160" 
+                  fill="none" stroke="#990000" stroke-width="3" stroke-linecap="round"/>
+            
+            <!-- Etiquetas R1 y R2 -->
+            <circle cx="135" cy="30" r="6" fill="#122B48" />
+            <text x="120" y="20" font-family="Arial" font-size="14" font-weight="bold" fill="#122B48">Onda R1</text>
+            
+            <circle cx="435" cy="30" r="6" fill="#122B48" />
+            <text x="420" y="20" font-family="Arial" font-size="14" font-weight="bold" fill="#122B48">Onda R2</text>
+            
+            <!-- Flecha y texto R-R -->
+            <line x1="135" y1="50" x2="435" y2="50" stroke="#0055A5" stroke-width="3" stroke-dasharray="5,5"/>
+            <polygon points="135,50 145,45 145,55" fill="#0055A5"/>
+            <polygon points="435,50 425,45 425,55" fill="#0055A5"/>
+            
+            <rect x="200" y="65" width="170" height="30" rx="5" fill="#0055A5"/>
+            <text x="285" y="85" font-family="Arial" font-size="13" font-weight="bold" fill="#FFFFFF" text-anchor="middle">R-R = 840 ms (21 cuadritos)</text>
+            
+            <!-- Nombres PQRST -->
+            <text x="65" y="140" font-family="Arial" font-size="12" font-weight="bold" fill="#333">P</text>
+            <text x="118" y="190" font-family="Arial" font-size="12" font-weight="bold" fill="#333">Q</text>
+            <text x="148" y="215" font-family="Arial" font-size="12" font-weight="bold" fill="#333">S</text>
+            <text x="185" y="120" font-family="Arial" font-size="12" font-weight="bold" fill="#333">T</text>
+        </svg>
+        """
+        st.components.v1.html(svg_ecg, height=280)
 
 # ==============================================================================
 # MÓDULO 2: CALCULADORA R-R Y MÉTRICAS
@@ -160,7 +115,7 @@ if "1." in opcion:
 elif "2." in opcion:
     st.header("📊 Módulo 2: Registro de Datos e Interpretación Clínica")
     st.markdown(
-        "Mida las distancias R-R en el papel de su ECG, multiplíquelas por **40 ms** e ingrese la lista de valores separada por comas."
+        "Mida las distancias R-R en el papel de su ECG del laboratorio, multiplíquelas por **40 ms** e ingrese la lista de valores separada por comas."
     )
 
     c1, c2 = st.columns(2)
@@ -219,36 +174,25 @@ elif "2." in opcion:
             "* **Respuesta al Esfuerzo:** Durante o inmediatamente después del ejercicio, el RMSSD cae drásticamente porque el cuerpo retira el freno vagal para permitir que el corazón se acelere."
         )
 
-        # Tacograma comparativo
-        fig_t, ax_t = plt.subplots(figsize=(9, 4))
-        ax_t.plot(
-            d_rep["rr"],
-            "o-",
-            color="#122B48",
-            linewidth=2,
-            label="Reposo Supino (Variable/Sano)",
-        )
-        ax_t.plot(
-            d_pos["rr"],
-            "o-",
-            color="#DD6B20",
-            linewidth=2,
-            label="Post-Esfuerzo (Rígido/Fatiga)",
-        )
-        ax_t.set_title("Tacograma: Variación de la Distancia R-R Latido a Latido")
-        ax_t.set_xlabel("Número de Latido Consecutive")
-        ax_t.set_ylabel("Intervalo R-R (ms)")
-        ax_t.grid(True, linestyle="--", alpha=0.6)
-        ax_t.legend()
-        st.pyplot(fig_t)
+        # Tacograma comparativo con tabla nativa
+        st.subheader("📈 Tacograma (Variación de la Distancia R-R Latido a Latido)")
+        df_taco = pd.DataFrame(
+            {
+                "Número de Latido": np.arange(1, len(d_rep["rr"]) + 1),
+                "Reposo Supino (ms)": d_rep["rr"],
+                "Post-Esfuerzo (ms)": d_pos["rr"][: len(d_rep["rr"])],
+            }
+        ).set_index("Número de Latido")
+
+        st.line_chart(df_taco)
 
 # ==============================================================================
 # MÓDULO 3: PROTOCOLO AUTONÓMICO DE 20 MINUTOS
 # ==============================================================================
 else:
-    st.header("🏃‍♂️ Módulo 3: Protocolo Autonómico (Art. Sensors 2025)")
+    st.header("🏃‍♂️ Módulo 3: Protocolo Autonómico de 20 Minutos")
     st.markdown(
-        "Fases del Test de Perfil Autonómico Cardiovascular en Atletas de Élite[cite: 4]:"
+        "Fases del Test de Perfil Autonómico Cardiovascular en Atletas (Sensors 2025):"
     )
 
     fase = st.selectbox(
@@ -267,17 +211,17 @@ else:
 
     if "Fase 1" in fase or "Fase 8" in fase:
         st.success(
-            "🌿 **Comportamiento Esperado:** Alta activación parasimpática (Vagal). RMSSD elevado (~80-110 ms) y Frecuencia Cardíaca baja[cite: 4]."
+            "🌿 **Comportamiento Esperado:** Alta activación parasimpática (Vagal). RMSSD elevado (~80-110 ms) y Frecuencia Cardíaca baja."
         )
     elif "Fase 4" in fase or "Fase 5" in fase:
         st.warning(
-            "⚡ **Comportamiento Esperado:** Estrés ortostático. Aumento de la modulación simpática y reducción del RMSSD (~45-50 ms)[cite: 4]."
+            "⚡ **Comportamiento Esperado:** Estrés ortostático. Aumento de la modulación simpática y reducción del RMSSD (~45-50 ms)."
         )
     elif "Fase 6" in fase:
         st.error(
-            "🔥 **Comportamiento Esperado:** Máxima exigencia simpática por ejercicio. Retirada vagal casi completa (RMSSD < 30 ms)[cite: 4]."
+            "🔥 **Comportamiento Esperado:** Máxima exigencia simpática por ejercicio. Retirada vagal casi completa (RMSSD < 30 ms)."
         )
     else:
         st.info(
-            "🫁 **Comportamiento Esperado:** Sincronización respiratoria de la Frecuencia Cardíaca (Arritmia Sinusal Respiratoria)[cite: 4]."
+            "🫁 **Comportamiento Esperado:** Sincronización respiratoria de la Frecuencia Cardíaca (Arritmia Sinusal Respiratoria)."
         )
