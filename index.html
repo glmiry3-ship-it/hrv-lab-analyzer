@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimulAI: Prescripción del ejercicio</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Header Principal -->
+    <header class="app-header">
+        <div class="header-content">
+            <div class="header-branding" style="display: flex; align-items: center; gap: 15px;">
+                <img src="logo_simulai.jpg" alt="SimulAI Logo" style="height: 40px; border-radius: 8px;">
+                <h1 style="margin: 0; font-size: 1.5rem;">SimulAI</h1>
+            </div>
+            <div class="phase-indicator">
+                <button onclick="downloadReport()" class="draft-btn" title="Descargar lo que lleva escrito"><i class="fa-solid fa-file-arrow-down"></i> Borrador</button>
+                <span id="badge-phase1" class="badge active">Fase 1: Consulta</span>
+                <span id="badge-phase2" class="badge">Fase 2: Prescripción</span>
+                <span id="badge-phase3" class="badge">Fase 3: Periodización</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="app-main">
+        <!-- FASE 1: INTERFAZ DE CHAT -->
+        <section id="phase1-chat" class="view-section active">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <div class="patient-avatar" style="font-size: 2.5rem;">
+                        <i id="patient-avatar-icon" class="fa-solid fa-user-injured"></i>
+                    </div>
+                    <div class="patient-info">
+                        <h2 id="chat-patient-name">Paciente Virtual</h2>
+                        <p class="status"><span class="dot"></span> En línea</p>
+                    </div>
+                    <button id="btn-next-phase" class="btn btn-primary">Terminar Consulta <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+                
+                <div id="chat-messages" class="chat-messages">
+                    <!-- Los mensajes se inyectan aquí vía JS -->
+                </div>
+
+                <div class="chat-input-area">
+                    <form id="chat-form">
+                        <input type="text" id="chat-input" placeholder="Escribe tu pregunta clínica aquí..." autocomplete="off">
+                        <button type="submit" class="btn btn-send"><i class="fa-solid fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Panel lateral para el profesor (Opcional, para ver el System Prompt) -->
+            <aside class="instructor-panel">
+                <div class="panel-header">
+                    <h3><i class="fa-solid fa-laptop-medical"></i> Panel del Sistema</h3>
+                    <button id="btn-new-patient" class="btn btn-sm btn-outline">Generar Nuevo Paciente</button>
+                </div>
+                <div class="panel-content">
+                    <p class="text-sm text-muted">Este es el <strong>System Prompt</strong> actual que rige al bot para este caso (visible solo para efectos educativos de esta demo):</p>
+                    <pre id="system-prompt-display"></pre>
+                </div>
+            </aside>
+        </section>
+
+        <!-- FASE 2: FORMULARIO DE PRESCRIPCIÓN -->
+        <section id="phase2-report" class="view-section hidden">
+            <div class="report-container">
+                <div class="report-header">
+                    <h2><i class="fa-solid fa-file-medical"></i> Reporte Clínico y Prescripción</h2>
+                    <p>Complete el siguiente informe basado en los hallazgos de la entrevista.</p>
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div>
+                        <strong>Lenguaje Centrado en la Persona:</strong> Recuerde evitar adjetivos estigmatizantes en todo su reporte. Utilice terminología que priorice a la persona (ej. "persona con obesidad", NO "paciente obeso").
+                    </div>
+                </div>
+
+                <form id="prescription-form">
+                    <!-- Sección 1: Riesgo CKM -->
+                    <div class="form-section">
+                        <h3>1. Clasificación y Riesgo CKM (Cardiovascular-Kidney-Metabolic)</h3>
+                        <div class="form-group">
+                            <label for="ckm-stage">Estadio CKM del Paciente:</label>
+                            <select id="ckm-stage" required>
+                                <option value="">Seleccione un estadio...</option>
+                                <option value="0">Estadio 0 (Sin factores de riesgo)</option>
+                                <option value="1">Estadio 1 (Exceso adiposidad / alt. glucosa)</option>
+                                <option value="2">Estadio 2 (Factores riesgo metabólicos o enf. renal moderada)</option>
+                                <option value="3">Estadio 3 (Enf. cardiovascular subclínica o renal severa)</option>
+                                <option value="4">Estadio 4 (Enfermedad cardiovascular clínica)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="ckm-justification">Justificación de la estratificación (Hallazgos de la entrevista):</label>
+                            <textarea id="ckm-justification" rows="3" required placeholder="Ej: Persona con diabetes tipo 2 e hipertensión, sin enfermedad cardiovascular clínica aparente..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Sección 1.5: Triaje y Evaluación -->
+                    <div class="form-section">
+                        <h3>1.5. Triaje Clínico y Pruebas Físicas</h3>
+                        <div class="form-group">
+                            <label for="medical-clearance">Triaje (Pre-participación):</label>
+                            <select id="medical-clearance" required>
+                                <option value="">Seleccione...</option>
+                                <option value="Iniciar Ejercicio Ligero a Moderado (Sin restricción)">Iniciar Ejercicio Ligero a Moderado (Sin restricción)</option>
+                                <option value="Requiere Autorización Médica Previa">Requiere Autorización Médica Previa</option>
+                                <option value="Requiere Prueba de Esfuerzo Clínica (ECG)">Requiere Prueba de Esfuerzo Clínica (ECG)</option>
+                            </select>
+                        </div>
+                        <div class="form-group mt-1">
+                            <label for="fitness-testing">Batería de Pruebas Físicas a Aplicar (Fitness Testing):</label>
+                            <textarea id="fitness-testing" rows="2" required placeholder="Ej: Test de Caminata de 6 Minutos (6MWT), Prueba de Fuerza de Agarre (Dinamometría), Timed Up and Go (TUG)..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Sección 2: SDOH -->
+                    <div class="form-section">
+                        <h3>2. Determinantes Sociales de la Salud (SDOH) y Sociodemográficos</h3>
+                        <p class="text-sm text-muted">Complete el perfil sociodemográfico y evalúe los determinantes del paciente.</p>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                            <div class="form-group mt-1">
+                                <label>Estrato Socioeconómico:</label>
+                                <select id="sdoh-estrato">
+                                    <option value="">Seleccione...</option>
+                                    <option value="1">Estrato 1</option>
+                                    <option value="2">Estrato 2</option>
+                                    <option value="3">Estrato 3</option>
+                                    <option value="4">Estrato 4</option>
+                                    <option value="5">Estrato 5</option>
+                                    <option value="6">Estrato 6</option>
+                                </select>
+                            </div>
+                            <div class="form-group mt-1">
+                                <label>Género:</label>
+                                <input type="text" id="sdoh-genero" placeholder="Ej: Femenino, Masculino, Otro">
+                            </div>
+                            <div class="form-group mt-1">
+                                <label>Etnia:</label>
+                                <input type="text" id="sdoh-etnia" placeholder="Ej: Mestizo, Afrodescendiente, Indígena...">
+                            </div>
+                            <div class="form-group mt-1">
+                                <label>Nivel Educativo:</label>
+                                <input type="text" id="sdoh-educacion" placeholder="Ej: Primaria, Bachiller, Universitario...">
+                            </div>
+                            <div class="form-group mt-1">
+                                <label>Ingresos:</label>
+                                <input type="text" id="sdoh-ingresos" placeholder="Ej: SMLV, Menos de SMLV...">
+                            </div>
+                            <div class="form-group mt-1">
+                                <label>Ocupación:</label>
+                                <input type="text" id="sdoh-ocupacion" placeholder="Ej: Empleado, Independiente, Hogar...">
+                            </div>
+                        </div>
+
+                        <h4 style="margin-top: 15px; margin-bottom: 5px; color: var(--text-color);">Evaluación de Entorno (Social y Ambiental)</h4>
+                        <div class="checkbox-group" style="margin-bottom: 15px;">
+                            <label class="checkbox-label" style="font-weight: bold; margin-top: 5px;">Entorno Social:</label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="env-social" value="Acceso a alimentos saludables"> Acceso a alimentos saludables
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="env-social" value="Acceso a parques o escenarios gratuitos/bajo costo para AF"> Acceso a parques o escenarios gratuitos/bajo costo para realizar AF
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="env-social" value="Apoyo social (familia/amigos) para hábitos saludables"> Apoyo social (familia/amigos) para hábitos saludables
+                            </label>
+
+                            <label class="checkbox-label" style="font-weight: bold; margin-top: 10px;">Entorno Ambiental:</label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="env-ambiental" value="Seguridad en el barrio para caminar/usar bicicleta"> Seguridad en el barrio para caminar/usar bicicleta
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="env-ambiental" value="Parques o áreas verdes cerca a su casa"> Parques o áreas verdes cerca a su casa
+                            </label>
+                        </div>
+
+                        <h4 style="margin-top: 15px; margin-bottom: 5px; color: var(--text-color);">Códigos Z CIE-10 (Barreras Clínicas)</h4>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="zcode" value="Z59.4"> Z59.4 - Falta de alimentos adecuados / Inseguridad alimentaria
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="zcode" value="Z59.6"> Z59.6 - Bajos ingresos / Problemas financieros
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="zcode" value="Z59.82"> Z59.82 - Inseguridad de transporte
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="zcode" value="Z60.2"> Z60.2 - Vivir solo / Aislamiento social
+                            </label>
+                        </div>
+                        <div class="form-group mt-1">
+                            <label for="sdoh-notes">Detalle cómo estas variables y barreras afectan el plan terapéutico:</label>
+                            <textarea id="sdoh-notes" rows="2" placeholder="Ej: La inseguridad en su barrio dificulta la caminata, se optará por ejercicios en casa..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Sección 3: Prescripción FITT-VP -->
+                    <div class="form-section">
+                        <h3>3. Prescripción FITT-VP de Precisión (Dosis de 4 Semanas)</h3>
+                        <p class="text-sm text-muted">Diseñe el ejercicio concurrente como una terapia molecular de protección multiorgánica.</p>
+                        
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="fitt-f"><strong>F</strong>recuencia (días/semana):</label>
+                                <input type="text" id="fitt-f" required placeholder="Ej: 3-4 días/semana">
+                            </div>
+                            <div class="form-group">
+                                <label for="fitt-t"><strong>T</strong>iempo (duración/sesión):</label>
+                                <input type="text" id="fitt-t" required placeholder="Ej: 30-40 min continuos">
+                            </div>
+                            <div class="form-group">
+                                <label for="fitt-ty"><strong>T</strong>ipo (modalidad principal):</label>
+                                <select id="fitt-ty" required>
+                                    <option value="">Seleccione Modalidad...</option>
+                                    <option value="Entrenamiento Aeróbico Continuo (MICT)">Entrenamiento Aeróbico Continuo (MICT)</option>
+                                    <option value="Entrenamiento Aeróbico Interválico (HIIT / MIIT)">Entrenamiento Aeróbico Interválico (HIIT / MIIT)</option>
+                                    <option value="Entrenamiento HIFT (Multimodal Funcional Alta Intensidad)">Entrenamiento HIFT (Multimodal Funcional Alta Intensidad)</option>
+                                    <option value="Entrenamiento de Fuerza / Sobrecarga">Entrenamiento de Fuerza / Sobrecarga</option>
+                                    <option value="Entrenamiento Concurrente (Aeróbico + Fuerza)">Entrenamiento Concurrente (Aeróbico + Fuerza)</option>
+                                    <option value="Ejercicios Neuromotores (Equilibrio / Coordinación)">Ejercicios Neuromotores (Equilibrio / Coordinación)</option>
+                                    <option value="Ejercicios en Medio Acuático (Hidroterapia / Piscina)">Ejercicios en Medio Acuático (Hidroterapia / Piscina)</option>
+                                    <option value="Entrenamiento Muscular Inspiratorio (IMT)">Entrenamiento Muscular Inspiratorio (IMT)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h4 style="margin-top: 1rem; color: var(--primary-color);">Parámetros de Intensidad y Dosificación</h4>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="intensity-zone">Zona de Entrenamiento y Progresión:</label>
+                                <input type="text" id="intensity-zone" required placeholder="Ej: Z2 progresando a Z3">
+                            </div>
+                            <div class="form-group">
+                                <label for="intensity-borg">Escala de Borg Modificada (0-10):</label>
+                                <select id="intensity-borg" required>
+                                    <option value="">Seleccione percepción...</option>
+                                    <option value="0 - Reposo total">0 - Reposo total</option>
+                                    <option value="1 - Muy suave">1 - Muy suave</option>
+                                    <option value="2 - Suave">2 - Suave</option>
+                                    <option value="3 - Moderado">3 - Moderado</option>
+                                    <option value="4 - Algo duro">4 - Algo duro</option>
+                                    <option value="5 - Duro">5 - Duro</option>
+                                    <option value="6 - Duro">6 - Duro</option>
+                                    <option value="7 - Muy duro">7 - Muy duro</option>
+                                    <option value="8 - Muy duro">8 - Muy duro</option>
+                                    <option value="9 - Muy, muy duro">9 - Muy, muy duro</option>
+                                    <option value="10 - Máximo">10 - Máximo</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="intensity-metric">Métrica de Intensidad (%VO2, %FCR, etc):</label>
+                                <input type="text" id="intensity-metric" required placeholder="Ej: 60-70% RFC">
+                            </div>
+                            <div class="form-group">
+                                <label for="intensity-hr">FC Máxima Esperada (lpm):</label>
+                                <input type="text" id="intensity-hr" required placeholder="Ej: 125 lpm">
+                            </div>
+                        </div>
+                        <div class="form-group mt-1">
+                            <label for="intensity-justification">Justificación Fisiológica de las Intensidades Elegidas:</label>
+                            <textarea id="intensity-justification" rows="2" required placeholder="Ej: Se escoge Z2 inicial para estabilización de placa y por uso de betabloqueadores..."></textarea>
+                        </div>
+                        
+                        <div class="form-group mt-1">
+                            <label for="fitt-v"><strong>V</strong>olumen y <strong>P</strong>rogresión:</label>
+                            <textarea id="fitt-v" rows="2" required placeholder="Ej: Iniciar con 90 min/semana y aumentar 10% en la semana 3..."></textarea>
+                        </div>
+                        
+                        <h4 style="margin-top: 1rem; color: var(--primary-color);">Estructura de la Sesión y Ejercicios Funcionales</h4>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="session-warmup">Calentamiento:</label>
+                                <input type="text" id="session-warmup" required placeholder="Ej: Movilidad articular + 5 min bici suave">
+                            </div>
+                            <div class="form-group">
+                                <label for="session-cooldown">Vuelta a la Calma:</label>
+                                <input type="text" id="session-cooldown" required placeholder="Ej: Estiramientos pasivos + respiración">
+                            </div>
+                        </div>
+                        <div class="form-group mt-1">
+                            <label>Ejercicios Específicos y Sobrecarga Funcional (Seleccione las opciones principales):</label>
+                            <div class="checkbox-group" style="margin-bottom: 10px;">
+                                <label class="checkbox-label"><input type="checkbox" name="exercise-opt" value="Sentadilla (pared/libre)"> Sentadilla</label>
+                                <label class="checkbox-label"><input type="checkbox" name="exercise-opt" value="Prensa de pecho"> Prensa de pecho</label>
+                                <label class="checkbox-label"><input type="checkbox" name="exercise-opt" value="Remo"> Remo</label>
+                                <label class="checkbox-label"><input type="checkbox" name="exercise-opt" value="Bicicleta estática"> Bicicleta estática</label>
+                                <label class="checkbox-label"><input type="checkbox" name="exercise-opt" value="Levantarse de silla (STS)"> Levantarse de silla (STS)</label>
+                                <label class="checkbox-label"><input type="checkbox" name="exercise-opt" value="Marcha con peso / Transferencias"> Marcha con peso / Transferencias</label>
+                                <label class="checkbox-label"><input type="checkbox" name="exercise-opt" value="Subir escaleras"> Subir escaleras</label>
+                                <label class="checkbox-label"><input type="checkbox" name="exercise-opt" value="Ejercicios en agua"> Ejercicios en agua</label>
+                            </div>
+                            <label for="functional-exercises">Detalle los ejercicios y series/repeticiones aquí:</label>
+                            <textarea id="functional-exercises" rows="2" required placeholder="Ej: 3 series de 10 repeticiones de levantarse de la silla..."></textarea>
+                        </div>
+
+                        <div class="form-group mt-1">
+                            <label for="molecular-just">Justificación como Terapia Molecular <small style="color: #64748b; font-weight:normal;">(Explique qué vías metabólicas, ej. AMPK, PGC-1α, miocinas, se activarán)</small>:</label>
+                            <textarea id="molecular-just" rows="3" required placeholder="Explica aquí qué vías moleculares se activarán con tu prescripción y cómo impactarán la fisiopatología del paciente..."></textarea>
+                        </div>
+                        
+                        <h4 style="margin-top: 1.5rem; color: #dc2626;"><i class="fa-solid fa-pills"></i> Farmacología y Alarmas Intra-sesión</h4>
+                        <div class="form-group mt-1">
+                            <label for="pharma-interactions">Interacciones Fármaco-Ejercicio a Vigilar:</label>
+                            <textarea id="pharma-interactions" rows="2" required placeholder="Ej: El paciente toma estatinas, vigilar riesgo de mialgia severa o debilidad muscular inusual..."></textarea>
+                        </div>
+                        <div class="form-group mt-1">
+                            <label for="intra-session-alarms">Signos de Alarma Intra-Sesión (Criterios de Suspensión):</label>
+                            <textarea id="intra-session-alarms" rows="2" required placeholder="Ej: Detener ejercicio si la PAS baja >10 mmHg, si presenta angina de pecho, o mareo inusual..."></textarea>
+                        </div>
+
+                        <div class="alert alert-danger mt-1">
+                            <i class="fa-solid fa-shield-heart"></i>
+                            <div>
+                                <label><strong>Seguridad Global y Contraindicaciones Clínicas:</strong></label>
+                                <div class="checkbox-group" style="margin-top: 5px; margin-bottom: 10px;">
+                                    <label class="checkbox-label"><input type="checkbox" name="safety-opt" value="Evitar maniobra de Valsalva"> Evitar maniobra de Valsalva</label>
+                                    <label class="checkbox-label"><input type="checkbox" name="safety-opt" value="Monitoreo glucémico pre/post ejercicio"> Monitoreo glucémico pre/post ejercicio</label>
+                                    <label class="checkbox-label"><input type="checkbox" name="safety-opt" value="Control estricto de PA antes y durante"> Control estricto de PA antes y durante</label>
+                                    <label class="checkbox-label"><input type="checkbox" name="safety-opt" value="Evitar impacto articular severo"> Evitar impacto articular severo</label>
+                                </div>
+                                <label for="safety-alarms">Otras precauciones (escribir):</label>
+                                <textarea id="safety-alarms" class="alert-textarea" rows="2" required placeholder="Ej: Cuidado con la neuropatía en los pies, usar calzado adecuado..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección 5: Metas -->
+                    <div class="form-section">
+                        <h3>5. Metas Clínicas y Seguimiento</h3>
+                        <div class="form-group">
+                            <label for="clinical-goals">Indicadores Clínicos de Éxito (Reevaluación a 12 semanas):</label>
+                            <textarea id="clinical-goals" rows="2" required placeholder="Ej: Reducir la HbA1c en 0.5%, aumentar 30 metros en la prueba 6MWT, y disminuir perímetro abdominal en 2 cm..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" id="btn-back-chat" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver a revisar chat</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i> Continuar a Periodización</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- FASE 3: PERIODIZACIÓN -->
+        <section id="phase3-periodization" class="view-section hidden">
+            <div class="report-container" style="max-width: 900px;">
+                <h2 style="color: var(--primary-color); border-bottom: 2px solid var(--secondary-color); padding-bottom: 0.5rem;"><i class="fa-solid fa-calendar-days"></i> Fase 3: Periodización Clínica del Ejercicio</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Diseñe la programación a mediano y largo plazo. Haga clic en los botones de "Guía Clínica" para revelar consejos ultra-específicos del paciente actual.</p>
+                
+                <form id="periodization-form">
+                    
+                    <!-- Macrociclo -->
+                    <div class="form-section">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3>A. Macrociclo (Global)</h3>
+                            <button type="button" class="btn btn-outline btn-sm guide-btn" data-target="guide-macro"><i class="fa-solid fa-lightbulb"></i> Guía Clínica</button>
+                        </div>
+                        <div id="guide-macro" class="guide-box hidden" style="background: rgba(14, 165, 233, 0.1); border-left: 4px solid #0ea5e9; padding: 10px; margin-bottom: 15px; border-radius: 4px; font-size: 0.9em; margin-top: 10px; display: none;">
+                            <!-- Inyectado por JS -->
+                        </div>
+                        <div class="form-group mt-1">
+                            <label for="macro-goal">Objetivo Principal del Macrociclo (12-24 semanas):</label>
+                            <textarea id="macro-goal" rows="2" required placeholder="Ej: Fase inicial de adaptaciones anatómicas y mejora de la capacidad oxidativa base..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Mesociclos -->
+                    <div class="form-section">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3>B. Mesociclos (Progresión Mensual)</h3>
+                            <button type="button" class="btn btn-outline btn-sm guide-btn" data-target="guide-meso"><i class="fa-solid fa-lightbulb"></i> Guía Clínica</button>
+                        </div>
+                        <div id="guide-meso" class="guide-box hidden" style="background: rgba(14, 165, 233, 0.1); border-left: 4px solid #0ea5e9; padding: 10px; margin-bottom: 15px; border-radius: 4px; font-size: 0.9em; margin-top: 10px; display: none;"></div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 10px;">
+                            <!-- Mes 1 -->
+                            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                                <h4 style="margin-top:0; color: var(--secondary-color);">Mesociclo 1 (Adaptación)</h4>
+                                <div class="form-group mt-1">
+                                    <label>Volumen (min/sem):</label>
+                                    <input type="number" id="meso1-vol" required placeholder="Ej: 150">
+                                </div>
+                                <div class="form-group mt-1">
+                                    <label>Intensidad Principal:</label>
+                                    <input type="text" id="meso1-int" required placeholder="Ej: Ligera (Z1)">
+                                </div>
+                            </div>
+                            <!-- Mes 2 -->
+                            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                                <h4 style="margin-top:0; color: var(--secondary-color);">Mesociclo 2 (Sobrecarga)</h4>
+                                <div class="form-group mt-1">
+                                    <label>Volumen (min/sem):</label>
+                                    <input type="number" id="meso2-vol" required placeholder="Ej: 200">
+                                </div>
+                                <div class="form-group mt-1">
+                                    <label>Intensidad Principal:</label>
+                                    <input type="text" id="meso2-int" required placeholder="Ej: Moderada (Z2)">
+                                </div>
+                            </div>
+                            <!-- Mes 3 -->
+                            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                                <h4 style="margin-top:0; color: var(--secondary-color);">Mesociclo 3 (Mejora)</h4>
+                                <div class="form-group mt-1">
+                                    <label>Volumen (min/sem):</label>
+                                    <input type="number" id="meso3-vol" required placeholder="Ej: 250">
+                                </div>
+                                <div class="form-group mt-1">
+                                    <label>Intensidad Principal:</label>
+                                    <input type="text" id="meso3-int" required placeholder="Ej: Mod-Vigorosa (Z2-Z3)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Microciclo -->
+                    <div class="form-section">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3>C. Microciclo (Semana Tipo - Estructura)</h3>
+                            <button type="button" class="btn btn-outline btn-sm guide-btn" data-target="guide-micro"><i class="fa-solid fa-lightbulb"></i> Guía Clínica</button>
+                        </div>
+                        <div id="guide-micro" class="guide-box hidden" style="background: rgba(14, 165, 233, 0.1); border-left: 4px solid #0ea5e9; padding: 10px; margin-bottom: 15px; border-radius: 4px; font-size: 0.9em; margin-top: 10px; display: none;"></div>
+                        
+                        <p class="text-sm text-muted mb-2">Describa la modalidad y distribución de la carga para cada día. Deje en blanco si es descanso.</p>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px;">
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <label style="width: 80px; font-weight: bold; color: var(--text-color);">Lunes:</label>
+                                <input type="text" id="micro-lu" style="flex: 1;" placeholder="Ej: Fuerza Tren Inferior + Aeróbico Z2 (30 min)">
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <label style="width: 80px; font-weight: bold; color: var(--text-color);">Martes:</label>
+                                <input type="text" id="micro-ma" style="flex: 1;" placeholder="Ej: Aeróbico Continuo Z2 (45 min)">
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <label style="width: 80px; font-weight: bold; color: var(--text-color);">Miércoles:</label>
+                                <input type="text" id="micro-mi" style="flex: 1;" placeholder="Ej: Descanso Activo / Flexibilidad">
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <label style="width: 80px; font-weight: bold; color: var(--text-color);">Jueves:</label>
+                                <input type="text" id="micro-ju" style="flex: 1;" placeholder="Ej: Fuerza Tren Superior + HIIT Corto (15 min)">
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <label style="width: 80px; font-weight: bold; color: var(--text-color);">Viernes:</label>
+                                <input type="text" id="micro-vi" style="flex: 1;" placeholder="Ej: Aeróbico Continuo Z2 (45 min)">
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <label style="width: 80px; font-weight: bold; color: var(--text-color);">Sábado:</label>
+                                <input type="text" id="micro-sa" style="flex: 1;" placeholder="Ej: Caminata recreativa (60 min)">
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <label style="width: 80px; font-weight: bold; color: var(--text-color);">Domingo:</label>
+                                <input type="text" id="micro-do" style="flex: 1;" placeholder="Ej: Descanso Total">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions" style="margin-top: 20px;">
+                        <button type="button" id="btn-back-phase2" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver a Prescripción</button>
+                        <button type="submit" class="btn btn-success"><i class="fa-solid fa-check-double"></i> Evaluar Plan y Generar Reporte</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer / Creditos -->
+    <footer class="app-footer">
+        <div class="footer-content">
+            <img src="logo.png" alt="Universidad Simón Bolívar" class="footer-logo">
+            <div class="footer-text">
+                <p><strong>Maestría en Actividad Física y Salud</strong></p>
+                <p>Autor: Mirary Mantilla-Morrón</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal de Éxito y Descarga -->
+    <div id="success-modal" class="modal hidden">
+        <div class="modal-content">
+            <i class="fa-regular fa-circle-check success-icon"></i>
+            <h2>¡Reporte Evaluado y Aprobado!</h2>
+            <p>La prescripción cumple con los criterios de seguridad clínica y lenguaje centrado en la persona.</p>
+            <div class="form-actions" style="justify-content: center; margin-top: 1.5rem;">
+                <button id="btn-download" class="btn btn-success"><i class="fa-solid fa-download"></i> Descargar Reporte (Entregable)</button>
+                <button id="btn-restart" class="btn btn-outline">Nuevo Caso Clínico</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
